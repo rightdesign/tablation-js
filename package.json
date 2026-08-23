@@ -1,0 +1,12 @@
+{
+  "name": "tablation-js",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "lint:ci": "pnpm -r lint:ci"
+  },
+  "packageManager": "pnpm@11.21.0"
+}

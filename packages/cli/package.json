@@ -1,0 +1,44 @@
+{
+  "name": "tablation",
+  "version": "0.1.0",
+  "description": "Tablation CLI \u2014 install workspace templates, export workspaces, bootstrap headless API projects",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "tablation": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "lint:ci": "eslint \"src/**/*.ts\" --max-warnings 0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tablation/client": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^17.0.0",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.23.12",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rightdesign/tablation-js.git",
+    "directory": "packages/cli"
+  }
+}
