@@ -1,0 +1,34 @@
+# The crew contract for this repo — see docs/REPO_SPEC.md in the crew repo.
+version: 1
+
+# POSIX-shell hooks: macOS or Linux, not Windows.
+platform: unix
+
+worktrees:
+  # A worktree needs the install to resolve the workspace links; nothing
+  # gitignored has to be copied across.
+  copy: []
+
+hooks:
+  setup: pnpm install --frozen-lockfile
+
+  # There is no test suite in this repo yet — no runner, no test files. The
+  # type check is the only real gate available, so it is declared as `test`
+  # deliberately and not as a stand-in for one: it catches the class of error
+  # a published client can least afford (a wrong type reaching a consumer),
+  # and it is honest about being all there is. A real suite replaces this.
+  test: pnpm -r typecheck
+
+  build: pnpm -r build
+
+release:
+  # Merging is the release today: nothing here is published yet, and the
+  # client reaches its only consumer through a `link:` dependency. When these
+  # packages go to npm this becomes `local` with a publish deploy hook.
+  mode: integrate
+
+  # Two packages with independent versions, so there is no single repo version
+  # for the crew to bump — and guessing which package a ticket versions would
+  # be worse than not versioning. Publishing versions them by hand.
+  versioning: none
+  changelog: false
