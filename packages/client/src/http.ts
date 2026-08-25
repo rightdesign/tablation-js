@@ -25,12 +25,17 @@ export class HttpClient {
   request<T>(
     method: string,
     path: string,
-    options?: { query?: QueryParams; body?: unknown },
+    options?: {
+      query?: QueryParams;
+      body?: unknown;
+      headers?: Record<string, string>;
+    },
   ): Promise<T> {
     return this.raw<T>(
       method,
       `${path}${buildQuery(options?.query)}`,
       options?.body,
+      options?.headers,
     );
   }
 
@@ -38,12 +43,14 @@ export class HttpClient {
     method: string,
     path: string,
     body?: unknown,
+    headers?: Record<string, string>,
   ): Promise<T> {
     const res = await fetch(`${this.config.baseUrl}${path}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.config.apiKey}`,
+        ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });

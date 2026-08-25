@@ -1,4 +1,5 @@
 import type { HttpClient, QueryParams } from './http';
+import { StaleWriteError, TablationApiError } from './errors';
 
 export interface RecordListParams {
   limit?: number;
@@ -48,18 +49,40 @@ export class RecordsResource {
     });
   }
 
-  update<T = Record<string, unknown>>(
+  /**
+   * `expectedUpdatedAt` (the `updated_at` the caller last read) turns this
+   * into a compare-and-swap write: the server rejects the update if the
+   * record changed since, and this throws `StaleWriteError` rather than
+   * silently overwriting someone else's edit.
+   */
+  async update<T = Record<string, unknown>>(
     dataModelId: string,
     recordId: string,
     body: Record<string, unknown>,
+    expectedUpdatedAt?: string,
   ): Promise<T> {
-    return this.http.request<T>(
-      'PATCH',
-      `/data-models/${dataModelId}/records/${recordId}`,
-      {
-        body,
-      },
-    );
+    try {
+      return await this.http.request<T>(
+        'PATCH',
+        `/data-models/${dataModelId}/records/${recordId}`,
+        {
+          body,
+          headers:
+            expectedUpdatedAt !== undefined
+              ? { 'X-Expected-Updated-At': expectedUpdatedAt }
+              : undefined,
+        },
+      );
+    } catch (err) {
+      if (
+        expectedUpdatedAt !== undefined &&
+        err instanceof TablationApiError &&
+        err.status === 409
+      ) {
+        throw new StaleWriteError(err.body);
+      }
+      throw err;
+    }
   }
 
   remove(dataModelId: string, recordId: string): Promise<void> {
