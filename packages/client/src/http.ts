@@ -5,6 +5,8 @@ export interface TablationClientConfig {
   baseUrl: string;
   /** A workspace API key — see Admin > API keys, or POST /workspaces/:id/api-keys. Sent as a bearer token. */
   apiKey: string;
+  /** Sent on every request. Cannot override Content-Type or Authorization. */
+  headers?: Record<string, string>;
 }
 
 export type QueryParams = Record<string, string | number | boolean | undefined>;
@@ -48,6 +50,7 @@ export class HttpClient {
     const res = await fetch(`${this.config.baseUrl}${path}`, {
       method,
       headers: {
+        ...this.config.headers,
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.config.apiKey}`,
         ...headers,
