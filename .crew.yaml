@@ -5,6 +5,7 @@ version: 1
 platform: unix
 
 worktrees:
+  prefix: tcli-issue-
   # A worktree needs the install to resolve the workspace links; nothing
   # gitignored has to be copied across.
   copy: []
