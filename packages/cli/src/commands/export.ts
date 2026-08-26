@@ -40,7 +40,7 @@ export async function exportCommand(argv: string[]): Promise<void> {
     return;
   }
 
-  const ctx = buildContext(values);
+  const ctx = await buildContext(values);
   const workspace = await resolveWorkspace(ctx, values.workspace);
 
   // Resolve "Table Name:cap" specs against the workspace's real tables —

@@ -1,4 +1,9 @@
-import { TablationClient, type Workspace } from "@tablation/client";
+import {
+  TablationClient,
+  getLastLogin,
+  hostFromUrl,
+  type Workspace,
+} from "@tablation/client";
 
 export class CliError extends Error {}
 
@@ -6,24 +11,52 @@ export class CliError extends Error {}
  * Shared connection/workspace resolution for every command. The base URL
  * accepts what a user would naturally type (`https://tablation.com`,
  * `http://localhost:3000`) and appends `/api` itself; the API key is the
- * same workspace bearer credential the MCP server uses (Admin > API keys).
+ * same workspace bearer credential the MCP server uses (Admin > API keys),
+ * or the one `tablation login` stashed in the OS keychain.
  */
 export interface CliContext {
   client: TablationClient;
   baseUrl: string;
 }
 
-export function buildContext(opts: { url?: string; key?: string }): CliContext {
-  const rawUrl =
-    opts.url ?? process.env.TABLATION_URL ?? "https://tablation.com";
+export function resolveBaseUrl(url?: string): string {
+  const rawUrl = url ?? process.env.TABLATION_URL ?? "https://tablation.com";
+  return rawUrl.replace(/\/+$/, "").replace(/\/api$/, "") + "/api";
+}
+
+export async function buildContext(opts: {
+  url?: string;
+  key?: string;
+  workspace?: string;
+}): Promise<CliContext> {
+  const baseUrl = resolveBaseUrl(opts.url);
+  // TABLATION_API_KEY always wins over a stored session — everything today
+  // works that way, and none of it may break.
   const key = opts.key ?? process.env.TABLATION_API_KEY;
-  if (!key) {
-    throw new CliError(
-      "No API key. Pass --key or set TABLATION_API_KEY (create one under Admin > API keys in your workspace).",
-    );
+  if (key) {
+    return { client: new TablationClient({ baseUrl, apiKey: key }), baseUrl };
   }
-  const baseUrl = rawUrl.replace(/\/+$/, "").replace(/\/api$/, "") + "/api";
-  return { client: new TablationClient({ baseUrl, apiKey: key }), baseUrl };
+
+  const host = hostFromUrl(baseUrl);
+  const last = getLastLogin();
+  const workspaceSlug =
+    opts.workspace ?? (last?.host === host ? last.workspaceSlug : undefined);
+  if (workspaceSlug) {
+    try {
+      const client = await TablationClient.fromSession({
+        baseUrl,
+        workspaceSlug,
+      });
+      return { client, baseUrl };
+    } catch {
+      // No stored session for this host/workspace, or this platform has no
+      // session store — fall through to the error below.
+    }
+  }
+
+  throw new CliError(
+    "No API key. Run `tablation login`, pass --key, or set TABLATION_API_KEY (create one under Admin > API keys in your workspace).",
+  );
 }
 
 /**

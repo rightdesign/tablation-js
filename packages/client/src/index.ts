@@ -11,3 +11,17 @@ export type {
   ImportDiffEntry,
   ImportApplySummary,
 } from './export-import';
+export { getSessionStore, hostFromUrl } from './session';
+export type { SessionStore, StoredSession } from './session';
+export {
+  getOrCreateShipId,
+  getLastLogin,
+  setLastLogin,
+  clearLastLogin,
+} from './config-dir';
+export {
+  loginWithDeviceCode,
+  authorizeDevice,
+  DeviceLoginError,
+} from './device-auth';
+export type { DeviceAuthorizeResponse, DeviceLoginResult } from './device-auth';

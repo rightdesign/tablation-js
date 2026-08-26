@@ -82,7 +82,7 @@ export async function installCommand(argv: string[]): Promise<void> {
   const manifest = await loadManifest(positionals[0]);
   if (values["no-sample-data"]) delete manifest.sampleRecords;
 
-  const ctx = buildContext(values);
+  const ctx = await buildContext(values);
   const workspace = await resolveWorkspace(ctx, values.workspace);
 
   // Non-empty targets need an explicit opt-in: additive-only makes this
