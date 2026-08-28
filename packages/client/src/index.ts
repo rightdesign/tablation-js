@@ -11,6 +11,7 @@ export type {
   ImportDiffEntry,
   ImportApplySummary,
 } from './export-import';
+export type { LibraryTemplate, LibraryInstallResult } from './library-templates';
 export { getSessionStore, hostFromUrl } from './session';
 export type { SessionStore, StoredSession } from './session';
 export {

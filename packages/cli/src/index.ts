@@ -3,6 +3,7 @@ import { exportCommand } from "./commands/export";
 import { installCommand } from "./commands/install";
 import { loginCommand } from "./commands/login";
 import { logoutCommand } from "./commands/logout";
+import { projectCommand } from "./commands/project-install";
 import { CliError } from "./context";
 
 const HELP = `tablation — the Tablation CLI
@@ -14,6 +15,7 @@ Commands:
   logout                   Remove the stored session
   install <file-or-url>   Install a workspace manifest/template (preview, confirm, apply)
   export                  Export a workspace to a manifest file, optionally as a template
+  project install <name>  Install a Library template as a new project, then open it
 
 Run "tablation <command> --help" for command options.
 
@@ -36,6 +38,9 @@ async function main(): Promise<void> {
       break;
     case "export":
       await exportCommand(rest);
+      break;
+    case "project":
+      await projectCommand(rest);
       break;
     case undefined:
     case "-h":

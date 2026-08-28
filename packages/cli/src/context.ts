@@ -2,6 +2,7 @@ import {
   TablationClient,
   getLastLogin,
   hostFromUrl,
+  type LibraryTemplate,
   type Workspace,
 } from "@tablation/client";
 
@@ -90,4 +91,30 @@ export async function resolveWorkspace(
           .map((w) => w.slug)
           .join(", ")}`,
   );
+}
+
+/**
+ * `--template` accepts an id, an `identifier`, or the template's display
+ * name (matched case-insensitively) — the Library catalog is platform-wide,
+ * so unlike `resolveWorkspace` there's no "exactly one visible" fallback.
+ */
+export async function resolveLibraryTemplate(
+  ctx: CliContext,
+  templateArg: string,
+): Promise<LibraryTemplate> {
+  const templates = await ctx.client.libraryTemplates.list();
+  const match = templates.find(
+    (t) =>
+      t.id === templateArg ||
+      t.identifier === templateArg ||
+      t.name.toLowerCase() === templateArg.toLowerCase(),
+  );
+  if (!match) {
+    throw new CliError(
+      `No library template "${templateArg}". Available: ${
+        templates.map((t) => t.name).join(", ") || "(none)"
+      }`,
+    );
+  }
+  return match;
 }

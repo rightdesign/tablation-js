@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { hostname } from "node:os";
 import { parseArgs } from "node:util";
 import {
@@ -10,6 +9,7 @@ import {
   setLastLogin,
   type DeviceAuthorizeResponse,
 } from "@tablation/client";
+import { openBrowser } from "../browser";
 import { CliError, resolveBaseUrl } from "../context";
 
 const HELP = `Usage: tablation login [options]
@@ -23,20 +23,6 @@ Options:
   --url <base>    Server base URL (default $TABLATION_URL or https://tablation.com)
   -h, --help      Show this help
 `;
-
-function openBrowser(url: string): void {
-  const command =
-    process.platform === "darwin"
-      ? "open"
-      : process.platform === "win32"
-        ? "start"
-        : "xdg-open";
-  try {
-    spawn(command, [url], { stdio: "ignore", detached: true }).unref();
-  } catch {
-    // Best-effort only — the URL and code are already printed for the user.
-  }
-}
 
 function printCode(info: DeviceAuthorizeResponse): void {
   console.log(`First, visit: ${info.verificationUri}`);
