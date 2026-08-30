@@ -64,25 +64,27 @@ export async function buildContext(opts: {
  * `--workspace` accepts an id or slug. Omitted: if the key can see exactly
  * one workspace, that's unambiguous — use it; otherwise list the choices
  * and make the user pick (never guess between workspaces).
+ *
+ * `GET /workspaces/:idOrSlug` resolves an explicit id/slug directly and
+ * needs no special role. `GET /workspaces` (used only for the "omitted"
+ * fallback below) is PLATFORM_ADMIN-gated — it lists every workspace on
+ * the platform — so an ordinary workspace-scoped API key can pass
+ * `--workspace` but can't rely on the fallback.
  */
 export async function resolveWorkspace(
   ctx: CliContext,
   workspaceArg: string | undefined,
 ): Promise<Workspace> {
-  const workspaces = await ctx.client.workspaces.list();
   if (workspaceArg) {
-    const match = workspaces.find(
-      (w) => w.id === workspaceArg || w.slug === workspaceArg,
-    );
-    if (!match) {
+    try {
+      return await ctx.client.workspaces.get(workspaceArg);
+    } catch {
       throw new CliError(
-        `No workspace "${workspaceArg}" visible to this API key. Available: ${
-          workspaces.map((w) => w.slug).join(", ") || "(none)"
-        }`,
+        `No workspace "${workspaceArg}" visible to this API key.`,
       );
     }
-    return match;
   }
+  const workspaces = await ctx.client.workspaces.list();
   if (workspaces.length === 1) return workspaces[0];
   throw new CliError(
     workspaces.length === 0
