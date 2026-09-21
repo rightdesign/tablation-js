@@ -22,6 +22,12 @@ interface Post {
   publishedAt: string;
 }
 const posts = await client.records.list<Post>(dataModelId);
+
+// Fetch a Media Library image pre-cropped to a target size around its focal point.
+const { data, contentType } = await client.media.crop(workspaceId, itemId, {
+  width: 800,
+  height: 600,
+});
 ```
 
 ## Regenerating types

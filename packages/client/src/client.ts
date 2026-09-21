@@ -2,6 +2,7 @@ import { DataModelsResource } from './data-models';
 import { ExportImportResource } from './export-import';
 import { HttpClient, type TablationClientConfig } from './http';
 import { LibraryTemplatesResource } from './library-templates';
+import { MediaResource } from './media';
 import { RecordsResource } from './records';
 import { ProjectsResource, WorkspacesResource } from './resources';
 import { getSessionStore, hostFromUrl, type SessionStore } from './session';
@@ -13,6 +14,7 @@ export class TablationClient {
   readonly records: RecordsResource;
   readonly exportImport: ExportImportResource;
   readonly libraryTemplates: LibraryTemplatesResource;
+  readonly media: MediaResource;
 
   constructor(config: TablationClientConfig) {
     const http = new HttpClient(config);
@@ -22,6 +24,7 @@ export class TablationClient {
     this.records = new RecordsResource(http);
     this.exportImport = new ExportImportResource(http);
     this.libraryTemplates = new LibraryTemplatesResource(http);
+    this.media = new MediaResource(http);
   }
 
   /**
