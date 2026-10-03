@@ -1,8 +1,11 @@
 {
-  "name": "tablation",
+  "name": "@tablation/cli",
   "version": "0.1.0",
-  "description": "Tablation CLI \u2014 install workspace templates, export workspaces, bootstrap headless API projects",
+  "description": "Tablation CLI — install workspace templates, export workspaces, bootstrap headless API projects",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
     "tablation": "./dist/index.js"

@@ -6,12 +6,12 @@ no-code database platform. Two packages:
 - [`@tablation/client`](packages/client) — typed TypeScript client for the
   Tablation API. Workspaces, projects, data models, records, and
   workspace-manifest export/import, authenticated with a workspace API key.
-- [`tablation`](packages/cli) — the CLI. Install workspace templates,
+- [`@tablation/cli`](packages/cli) — the `tablation` CLI. Install workspace templates,
   export workspaces (optionally as templates with sample data), and
   bootstrap headless API projects.
 
 ```
-npx tablation install bug-tracker.template.json --workspace my-workspace
+npx @tablation/cli install bug-tracker.template.json --workspace my-workspace
 ```
 
 ## Development
