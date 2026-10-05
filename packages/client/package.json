@@ -1,6 +1,6 @@
 {
   "name": "@tablation/client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Typed TypeScript client for the Tablation API",
   "license": "MIT",
   "publishConfig": {
