@@ -17,7 +17,13 @@ hooks:
   # deliberately and not as a stand-in for one: it catches the class of error
   # a published client can least afford (a wrong type reaching a consumer),
   # and it is honest about being all there is. A real suite replaces this.
-  test: pnpm -r typecheck
+  #
+  # Build first: @tablation/cli resolves @tablation/client through its
+  # gitignored dist/index.d.ts, so typechecking alone checks the cli against
+  # whatever dist was last built by hand (TCLI-1367: the release gate failed
+  # for ~45 minutes after a client type change). The build is cheap and also
+  # exercises the real build the publish workflow relies on.
+  test: pnpm -r build && pnpm -r typecheck
 
   build: pnpm -r build
 
