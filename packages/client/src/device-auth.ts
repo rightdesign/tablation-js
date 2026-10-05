@@ -55,7 +55,10 @@ async function postJson(
     body: JSON.stringify(body),
   });
   const text = await res.text();
-  const json: unknown = text ? JSON.parse(text) : undefined;
+  // Only parse what claims to be JSON: a wrong-host URL answers with the SPA's
+  // HTML (e.g. a 405), and callers want `POST ... -> <status>`, not a parse error.
+  const isJson = (res.headers.get('content-type') ?? '').includes('application/json');
+  const json: unknown = text && isJson ? JSON.parse(text) : undefined;
   return { status: res.status, json };
 }
 
@@ -63,11 +66,14 @@ async function postJson(
 export async function authorizeDevice(
   baseUrl: string,
   deviceName?: string,
+  workspaceSlug?: string,
 ): Promise<DeviceAuthorizeResponse> {
+  // Older servers ignore the extra `workspaceSlug` key, so no version gate.
   const { status, json } = await postJson(`${baseUrl}/auth/device/authorize`, {
     deviceName,
+    workspaceSlug,
   });
-  if (status < 200 || status >= 300) {
+  if (status < 200 || status >= 300 || json === undefined) {
     throw new Error(`POST /auth/device/authorize -> ${status}`);
   }
   return json as DeviceAuthorizeResponse;
@@ -84,7 +90,7 @@ async function pollDeviceToken(
   const { status, json } = await postJson(`${baseUrl}/auth/device/token`, {
     deviceCode,
   });
-  if (status >= 200 && status < 300) {
+  if (status >= 200 && status < 300 && json !== undefined) {
     return { ok: true, result: json as DeviceLoginResult };
   }
   const error = (json as { error?: string } | undefined)?.error;
@@ -112,10 +118,16 @@ export async function loginWithDeviceCode(
   baseUrl: string,
   opts: {
     deviceName?: string;
+    /** Hint for the approval page to preselect this workspace. */
+    workspaceSlug?: string;
     onCode?: (info: DeviceAuthorizeResponse) => void;
   } = {},
 ): Promise<DeviceLoginResult> {
-  const authorize = await authorizeDevice(baseUrl, opts.deviceName);
+  const authorize = await authorizeDevice(
+    baseUrl,
+    opts.deviceName,
+    opts.workspaceSlug,
+  );
   opts.onCode?.(authorize);
 
   let interval = authorize.interval;

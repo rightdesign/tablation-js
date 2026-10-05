@@ -21,6 +21,8 @@ other platforms).
 
 Options:
   --url <base>    Server base URL (default $TABLATION_URL or https://tablation.com)
+  --workspace <slug>
+                  Workspace to preselect on the approval page
   -h, --help      Show this help
 `;
 
@@ -37,6 +39,7 @@ export async function loginCommand(argv: string[]): Promise<void> {
     args: argv,
     options: {
       url: { type: "string" },
+      workspace: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -53,6 +56,7 @@ export async function loginCommand(argv: string[]): Promise<void> {
   try {
     result = await loginWithDeviceCode(baseUrl, {
       deviceName: `CLI on ${hostname()}`,
+      workspaceSlug: values.workspace,
       onCode: printCode,
     });
   } catch (err) {
