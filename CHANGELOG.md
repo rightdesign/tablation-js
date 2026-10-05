@@ -14,3 +14,7 @@ in one commit, adds a `## [x.y.z] — YYYY-MM-DD` section here (newest first),
 bumps both package versions, pushes `main` and the annotated `vX.Y.Z` tag.
 `.github/workflows/publish.yml` publishes to npm from that tag. Do not bump
 versions or edit this file on a ticket branch.
+
+## [0.1.3] — 2026-10-05
+
+- The release gate builds the client before typechecking, so it no longer fails against a stale client dist (TCLI-1367)
