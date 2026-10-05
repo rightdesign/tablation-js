@@ -21,14 +21,27 @@ hooks:
 
   build: pnpm -r build
 
-release:
-  # Merging is the release today: nothing here is published yet, and the
-  # client reaches its only consumer through a `link:` dependency. When these
-  # packages go to npm this becomes `local` with a publish deploy hook.
-  mode: integrate
+  # cli publishes last (pnpm -r publishes in dependency order), so its version
+  # appearing on npm is the signal that the whole release is live.
+  released: npm view @tablation/cli version
 
-  # Two packages with independent versions, so there is no single repo version
-  # for the crew to bump — and guessing which package a ticket versions would
-  # be worse than not versioning. Publishing versions them by hand.
-  versioning: none
-  changelog: false
+release:
+  # The release phase bumps, changelogs, commits `Release vX.Y.Z` and pushes
+  # main plus the annotated tag; .github/workflows/publish.yml (tag-triggered,
+  # OIDC) publishes client then cli.
+  mode: ci_auto
+  ci:
+    provider: github
+
+  # Both packages move in lockstep: publish.yml refuses a tag that does not
+  # equal each package's version. The root package.json stays unversioned.
+  versioning: auto
+  versionFiles:
+    - packages/client/package.json
+    - packages/cli/package.json
+  changelog: CHANGELOG.md
+
+  verify:
+    match: version
+    timeoutSeconds: 900
+    intervalSeconds: 20
