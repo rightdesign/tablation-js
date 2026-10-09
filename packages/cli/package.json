@@ -1,6 +1,6 @@
 {
   "name": "@tablation/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Tablation CLI — install workspace templates, export workspaces, bootstrap headless API projects",
   "license": "MIT",
   "publishConfig": {
