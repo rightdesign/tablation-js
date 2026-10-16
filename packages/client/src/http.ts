@@ -108,15 +108,27 @@ export class HttpClient {
   }
 }
 
-/** Shared by `raw` and `requestBinary`: a non-2xx response's body is always JSON, whatever the route normally returns on success. */
+/**
+ * Shared by `raw` and `requestBinary`. A non-2xx body is normally JSON, but a
+ * proxy (nginx/Cloudflare) can answer 502/503 with an HTML page; that becomes
+ * an error carrying the status and the body's first line, with no `json`.
+ */
 async function toApiError(
   method: string,
   path: string,
   res: Response,
 ): Promise<TablationApiError> {
   const text = await res.text();
-  const json: unknown = text ? JSON.parse(text) : undefined;
-  const message = extractErrorMessage(json) ?? res.statusText;
+  let json: unknown;
+  let parsed = true;
+  try {
+    json = text ? JSON.parse(text) : undefined;
+  } catch {
+    parsed = false;
+  }
+  const firstLine = text.split('\n').find((l) => l.trim())?.trim();
+  const message =
+    (parsed ? extractErrorMessage(json) : firstLine) ?? res.statusText;
   return new TablationApiError(
     `${method} ${path} -> ${res.status}: ${message}`,
     res.status,
