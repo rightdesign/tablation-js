@@ -22,7 +22,6 @@ export type {
 export { getSessionStore, hostFromUrl } from './session';
 export type { SessionStore, StoredSession } from './session';
 export {
-  getOrCreateShipId,
   getLastLogin,
   setLastLogin,
   clearLastLogin,

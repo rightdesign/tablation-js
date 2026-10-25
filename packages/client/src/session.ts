@@ -26,7 +26,6 @@ const KEYCHAIN_SERVICE = 'com.tablation.cli';
 
 export interface StoredSession {
   apiKey: string;
-  shipId: string;
   workspaceId: string;
   identityId: string;
   createdAt: string;

@@ -2,7 +2,6 @@ import { hostname } from "node:os";
 import { parseArgs } from "node:util";
 import {
   DeviceLoginError,
-  getOrCreateShipId,
   getSessionStore,
   hostFromUrl,
   loginWithDeviceCode,
@@ -50,7 +49,6 @@ export async function loginCommand(argv: string[]): Promise<void> {
 
   const baseUrl = resolveBaseUrl(values.url);
   const store = getSessionStore(); // throws a clear error on unsupported platforms
-  const shipId = getOrCreateShipId();
 
   let result;
   try {
@@ -67,7 +65,6 @@ export async function loginCommand(argv: string[]): Promise<void> {
   const host = hostFromUrl(baseUrl);
   await store.set(host, result.workspace.slug, {
     apiKey: result.apiKey.key,
-    shipId,
     workspaceId: result.workspace.id,
     identityId: result.identity.id,
     createdAt: result.apiKey.createdAt,

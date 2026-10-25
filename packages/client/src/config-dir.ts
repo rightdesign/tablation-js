@@ -1,41 +1,41 @@
-import { randomUUID } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 const CONFIG_DIR = join(homedir(), '.config', 'tablation');
-const CONFIG_FILE = join(CONFIG_DIR, 'ship.json');
+const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
+/** Earlier releases wrote this name (and a now-dropped `shipId`); only `lastLogin` is carried over. */
+const LEGACY_CONFIG_FILE = join(CONFIG_DIR, 'ship.json');
 
-interface ShipConfig {
-  shipId: string;
+interface CliConfig {
   lastLogin?: { host: string; workspaceSlug: string };
 }
 
-function readConfig(): ShipConfig | undefined {
+function readFile(path: string): CliConfig | undefined {
   try {
-    return JSON.parse(readFileSync(CONFIG_FILE, 'utf8')) as ShipConfig;
+    return JSON.parse(readFileSync(path, 'utf8')) as CliConfig;
   } catch {
     return undefined;
   }
 }
 
-function writeConfig(config: ShipConfig): void {
-  mkdirSync(CONFIG_DIR, { recursive: true });
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + '\n');
+/** Reads `config.json`, falling back to the legacy `ship.json` so existing logins keep their default workspace. */
+function readConfig(): CliConfig | undefined {
+  const current = readFile(CONFIG_FILE);
+  if (current) return current;
+  const legacy = readFile(LEGACY_CONFIG_FILE);
+  return legacy?.lastLogin ? { lastLogin: legacy.lastLogin } : undefined;
 }
 
-/**
- * A stable per-machine id, generated once and mirrored here (non-secret)
- * rather than kept only in the keychain — so it survives a keychain wipe
- * and is readable without an unlock prompt. Not a server-tracked value:
- * the device-code API knows nothing about it.
- */
-export function getOrCreateShipId(): string {
-  const existing = readConfig();
-  if (existing?.shipId) return existing.shipId;
-  const shipId = `shp_${randomUUID().replace(/-/g, '')}`;
-  writeConfig({ ...existing, shipId });
-  return shipId;
+function writeConfig(config: CliConfig): void {
+  mkdirSync(CONFIG_DIR, { recursive: true });
+  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + '\n');
+  // Migrated: the legacy file is now redundant.
+  try {
+    unlinkSync(LEGACY_CONFIG_FILE);
+  } catch {
+    // absent, or not ours to remove — harmless either way
+  }
 }
 
 /** Which host/workspace a bare command with no `--workspace` should resolve the session for. */
@@ -45,12 +45,12 @@ export function getLastLogin():
 }
 
 export function setLastLogin(host: string, workspaceSlug: string): void {
-  const config = readConfig() ?? { shipId: getOrCreateShipId() };
+  const config = readConfig() ?? {};
   writeConfig({ ...config, lastLogin: { host, workspaceSlug } });
 }
 
 export function clearLastLogin(): void {
   const config = readConfig();
   if (!config?.lastLogin) return;
-  writeConfig({ shipId: config.shipId });
+  writeConfig({});
 }
