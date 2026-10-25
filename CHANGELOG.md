@@ -15,6 +15,10 @@ bumps both package versions, pushes `main` and the annotated `vX.Y.Z` tag.
 `.github/workflows/publish.yml` publishes to npm from that tag. Do not bump
 versions or edit this file on a ticket branch.
 
+## [0.1.7] — 2026-10-25
+
+- TCLI-2312 The CLI keeps its default login in ~/.config/tablation/config.json instead of ship.json, and no longer stores an unused ship id.
+
 ## [0.1.6] — 2026-10-16
 
 - ISSUE-1778 @tablation/client no longer throws a SyntaxError when an error response is not JSON; it raises a TablationApiError with the status and the first line of the body.
