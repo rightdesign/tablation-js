@@ -53,6 +53,32 @@ function isNotFoundError(err: unknown): boolean {
   );
 }
 
+/**
+ * `security find-generic-password -w` prints a stored value as text only when
+ * every byte is printable ASCII; with any multibyte UTF-8 sequence it prints
+ * the whole value as one hex string instead. Decode that form so items written
+ * by earlier releases (raw UTF-8) still read back without being re-stored.
+ */
+export function decodeSecurityOutput(stdout: string): string {
+  const text = stdout.trim();
+  if (text.length > 0 && text.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(text)) {
+    return Buffer.from(text, 'hex').toString('utf8');
+  }
+  return text;
+}
+
+/**
+ * JSON with every code point above 0x7F escaped as `\uXXXX`, so the keychain
+ * value is pure ASCII (readable as text by `security -w`); `JSON.parse` reads
+ * the escapes back as the original characters.
+ */
+export function stringifyAscii(value: unknown): string {
+  return JSON.stringify(value).replace(
+    /[\u0080-\uffff]/g,
+    (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, '0')}`,
+  );
+}
+
 class DarwinKeychainSessionStore implements SessionStore {
   async get(
     host: string,
@@ -67,7 +93,7 @@ class DarwinKeychainSessionStore implements SessionStore {
         account(host, workspaceSlug),
         '-w',
       ]);
-      return JSON.parse(stdout.trim()) as StoredSession;
+      return JSON.parse(decodeSecurityOutput(stdout)) as StoredSession;
     } catch (err) {
       if (isNotFoundError(err)) return undefined;
       throw err;
@@ -89,7 +115,7 @@ class DarwinKeychainSessionStore implements SessionStore {
       '-a',
       account(host, workspaceSlug),
       '-w',
-      JSON.stringify(session),
+      stringifyAscii(session),
     ]);
   }
 
