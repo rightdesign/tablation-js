@@ -62,6 +62,26 @@ async function postJson(
   return { status: res.status, json };
 }
 
+/**
+ * `<what> -> <status>`, plus the server's own reason when the JSON body carries
+ * one (`message` string or string array, as Nest validation sends; or `error`).
+ * A non-JSON body leaves `json` undefined, so the status-only text stays.
+ */
+function failure(what: string, status: number, json: unknown): Error {
+  let detail: string | undefined;
+  if (typeof json === 'object' && json !== null) {
+    const { message, error } = json as { message?: unknown; error?: unknown };
+    if (typeof message === 'string') detail = message;
+    else if (
+      Array.isArray(message) &&
+      message.every((m) => typeof m === 'string')
+    ) {
+      detail = message.join('; ');
+    } else if (typeof error === 'string') detail = error;
+  }
+  return new Error(`${what} -> ${status}${detail ? `: ${detail}` : ''}`);
+}
+
 /** `baseUrl` is the client's usual `.../api` base — these two routes are the only public (unauthenticated) ones on it. */
 export async function authorizeDevice(
   baseUrl: string,
@@ -74,7 +94,7 @@ export async function authorizeDevice(
     workspaceSlug,
   });
   if (status < 200 || status >= 300 || json === undefined) {
-    throw new Error(`POST /auth/device/authorize -> ${status}`);
+    throw failure('POST /auth/device/authorize', status, json);
   }
   return json as DeviceAuthorizeResponse;
 }
@@ -101,7 +121,7 @@ async function pollDeviceToken(
   ) {
     return { ok: false, error: error as DeviceTokenErrorCode };
   }
-  throw new Error(`POST /auth/device/token -> ${status}`);
+  throw failure('POST /auth/device/token', status, json);
 }
 
 function sleep(ms: number): Promise<void> {
