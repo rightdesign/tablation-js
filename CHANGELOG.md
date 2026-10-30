@@ -15,6 +15,10 @@ bumps both package versions, pushes `main` and the annotated `vX.Y.Z` tag.
 `.github/workflows/publish.yml` publishes to npm from that tag. Do not bump
 versions or edit this file on a ticket branch.
 
+## [0.1.9] — 2026-10-30
+
+- TCLI-2669 Device login errors now include the server's reason.
+
 ## [0.1.8] — 2026-10-29
 
 - TCLI-2627 @tablation/client reads macOS keychain sessions that contain non-ASCII characters, and stores new ones as ASCII-escaped JSON.
